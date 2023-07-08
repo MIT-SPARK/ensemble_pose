@@ -1,0 +1,47 @@
+name: casper_py39
+channels:
+  - pytorch3d
+  - pytorch
+  - pyg
+  - open3d-admin
+  - bottler
+  - iopath
+  - conda-forge
+  - defaults
+dependencies:
+  - cudatoolkit=11.3.1
+  - numpy
+  - pillow=9.1.1
+  - pip=22.1.2
+  - python=3.9.13
+  - pytorch::pytorch=1.12.1=py3.9_cuda11.3_cudnn8.3.2_0
+  - pytorch::torchvision=0.13.1=py39_cu113
+  - scipy
+  - ffmpeg
+  - tqdm
+  - pyg=2.1.0=py39_torch_1.12.0_cu113
+  - pytorch3d=0.7.1=py39_cu113_pyt1121
+  - open3d=0.14.1=py39_0
+  - tensorboard
+  - pytest
+  - trimesh
+  - pyopengl
+  - pyrender
+  - pyglet
+  - scikit-image
+  - scipy
+  - cvxpy
+  - matplotlib
+  - pinocchio
+  - pypng
+  - xarray==0.14.1
+  - cmake
+  - pyarrow
+  - bokeh
+  - seaborn
+  - pip:
+      - Jinja2
+      - cvxpylayers
+      - roma
+      - transforms3d
+      - git+https://github.com/ylabbe/bullet3.git

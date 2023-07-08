@@ -1,0 +1,8 @@
+services:
+    tests:
+        build: ./docker/Dockerfile
+        volumes:
+            - ./:/app
+        command:
+            - python -m pip install -e /app
+            - python -m pytest tests/ 

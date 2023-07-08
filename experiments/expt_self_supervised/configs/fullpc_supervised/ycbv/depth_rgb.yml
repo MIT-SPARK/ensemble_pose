@@ -1,0 +1,59 @@
+# jinja variables:
+# project_root
+# exp_root
+
+dataset: 'ycbv'
+train_mode: 'supervised'
+save_folder: '{{ exp_root }}/exp_results/supervised_topk_depth_rgb'
+
+# training params
+optimizer:
+  lr_sgd: 0.02
+  momentum_sgd: 0.9
+  weight_decay_sgd: 0
+
+scheduler:
+  step_size: 100
+  gamma: 0.1
+
+training:
+  train_dataset_len: 50000
+  train_batch_size: 100
+  train_num_of_points: 1000
+
+  val_dataset_len: 1000
+  val_batch_size: 50
+  val_num_of_points: 1000
+
+  num_epochs: 200
+
+  adds_threshold: 0.02  # 5% of the object diameter
+  adds_auc_threshold: 0.05  # 5% of the object diameter
+  adds_max: True      # unused
+  kpt_distance_reg_coef: 1.0
+
+  # sampling algorithms for points on the cad model
+  cad_model_sampling_method: "uniform"
+
+  # set to true to load the point-wise RGB values for each point cloud
+  load_rgb_for_points: True
+
+c3po:
+  detector_type: 'point_transformer'
+  use_corrector: False
+
+  # parameters for the robust centroid alg
+  robust_centroid:
+    algorithm: "gnc-tls"
+    cost_termination_threshold: 0.0001
+
+  point_transformer:
+    sampling_type: "mlp_topk"
+    norm_type: "layer"
+
+    # set to 0 if only using depth
+    # set to 3 if also loading RGB
+    input_feature_dim: 3
+
+  point_transformer_dense:
+    norm_type: "layer"

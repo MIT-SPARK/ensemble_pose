@@ -1,0 +1,36 @@
+name: base
+channels:
+  - open3d-admin
+  - bottler
+  - iopath
+  - conda-forge
+  - defaults
+dependencies:
+  - open3d=0.14.1=py39_0
+  - tensorboard
+  - pytest
+  - trimesh
+  - pyopengl
+  - pyrender
+  - pyglet
+  - scikit-image
+  - scipy
+  - cvxpy
+  - matplotlib
+  - pinocchio
+  - pypng
+  - xarray==0.14.1
+  - cmake
+  - pyarrow
+  - bokeh
+  - seaborn
+  - zarr
+  - pip:
+      - Jinja2
+      - cvxpylayers
+      - roma
+      - meshio
+      - transforms3d
+      - rosbags
+      - tbparse
+      - git+https://github.com/ylabbe/bullet3.git

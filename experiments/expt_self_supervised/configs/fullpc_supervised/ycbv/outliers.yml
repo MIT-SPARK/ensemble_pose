@@ -1,0 +1,39 @@
+# jinja variables:
+# project_root
+# exp_root
+
+dataset: 'ycbv'
+train_mode: 'supervised'
+save_folder: '{{ exp_root }}/exp_results/supervised_outliers'
+
+# training params
+optimizer:
+  lr_sgd: 0.02
+  momentum_sgd: 0.9
+
+scheduler:
+  step_size: 5
+  gamma: 0.1
+
+training:
+  train_dataset_len: 50000
+  train_batch_size: 100
+  train_num_of_points: 1000
+
+  val_dataset_len: 1000
+  val_batch_size: 50
+  val_num_of_points: 1000
+
+  num_epochs: 10
+
+  adds_threshold: 0.02  # 5% of the object diameter
+  adds_auc_threshold: 0.05  # 5% of the object diameter
+  adds_max: True      # unused
+
+  gen_outliers: True
+  outlier_ratio: 0.5
+  outlier_scale: 5
+
+c3po:
+  detector_type: 'point_transformer'
+  use_corrector: False

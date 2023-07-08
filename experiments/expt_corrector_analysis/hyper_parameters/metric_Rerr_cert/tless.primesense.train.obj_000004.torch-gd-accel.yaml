@@ -1,0 +1,6 @@
+Rerr_cert_opt: 0.15322312712669373
+algo: torch-gd-accel
+clamp_thres: 0.014999999664723873
+ds_name: tless.primesense.train
+epsilon: 0.009999999776482582
+object_label: obj_000004

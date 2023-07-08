@@ -1,0 +1,16 @@
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
+]
+log_cli = true
+log_cli_level = "DEBUG"
+log_cli_format = "%(asctime)s [%(levelname)8s] (%(filename)s:%(lineno)s) %(message)s "
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+[tool.black]
+line-length = 120
+
+[build-system]
+#requires = ["setuptools","pytorch @ https://anaconda.org/pytorch/pytorch/1.11.0/download/linux-64/pytorch-1.11.0-py3.9_cuda11.3_cudnn8.2.0_0.tar.bz2"]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

@@ -1,0 +1,13 @@
+docker run -it --user="$(id -u $USER)":"$(id -g $USER)" \
+--gpus '"device=0"' \
+--shm-size 8G \
+--env="DISPLAY=:1" \
+--env="CUDA_VISIBLE_DEVICES=0" \
+--env="PYTHONPATH=$PYTHONPATH:/opt/project/ensemble_pose/src:/opt/project/ensemble_pose/external/bop_toolkit:/opt/project/ensemble_pose/external:/opt/project/ensemble_pose/experiments" \
+--volume="/home/jnshi/code/ensemble_pose/:/opt/project/ensemble_pose" \
+--volume="/mnt/jnshi_data/datasets/casper-data:/mnt/datasets/" \
+--volume="/etc/group:/etc/group:ro" \
+--volume="/etc/passwd:/etc/passwd:ro" \
+--volume="/etc/shadow:/etc/shadow:ro" \
+--volume="/etc/sudoers.d:/etc/sudoers.d:ro" \
+--volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" casper/pytorch1.12.1:latest bash

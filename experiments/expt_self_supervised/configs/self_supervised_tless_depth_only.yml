@@ -1,0 +1,418 @@
+# jinja variables:
+# project_root
+# exp_root
+
+dataset: 'tless'
+# dataset for self-supervised training
+train_ds_name: 'tless.primesense.train'
+# dataset for validation
+val_ds_name: 'tless.primesense.train'
+urdf_ds_name: 'tless'
+
+data_dir: '{{ project_root }}/data/'
+bop_data_dir: '{{ project_root }}/data/bop/'
+bop_ds_dir: '{{ project_root }}/data/bop/bop_datasets/'
+save_folder: '{{ exp_root }}/exp_results/self_supervised'
+
+train_mode: 'self_supervised'
+# models to use in parallel pipeline
+# available models: ['c3po_multi', 'c3po', 'cosypose', 'cosypose_coarse_refine']
+models_to_use: ['c3po_multi']
+seg_type: 'gt'
+
+visualization:
+  # visualize segmentation
+  gt_rgb_segmentation: False
+  # visualize segmented point clouds
+  gt_pc_segmentation: False
+  # visualize detector results
+  detector_outputs: False
+  # visualize inputs to models
+  model_inputs: False
+  # visualize results of C3PO
+  c3po_outputs: False
+  # visualize results of cosypose model
+  cosypose_outputs: False
+
+# training params
+optimizer:
+  lr_sgd: 0.02
+  momentum_sgd: 0.9
+
+training:
+  batch_size: 15
+  epoch_size: 115200
+  n_epochs: 700
+  n_dataloader_workers: 1
+  n_workers: 1
+  # data loader params
+  input_resize: [540, 720]
+  rgb_augmentation: False
+  background_augmentation: False
+  gray_augmentation: False
+  min_area: null
+  train_stop_cert_threshold: 0.99
+  loss_theta: 25.0
+  cert_epsilon: 0.999
+  # type of the data loading regime to use
+  # frame_objs: return a frame containing all objects, using BOPDataset directly
+  # rand_objs: return random batched objects (potentially from different images)
+  dataloader_type: 'frame_objs'
+  # validation settings
+  # number of images used for validation
+  val_ds_size: 5000
+
+detector:
+  # type of detections (segmentation mask, bboxes) to use:
+  # gt, maskrcnn
+  det_type: 'gt'
+  # threshold for determining the masks
+  mask_th: 0.8
+  label_to_category_id:
+    # dataset specific
+    background: 0
+    obj_000001: 1
+    obj_000002: 2
+    obj_000003: 3
+    obj_000004: 4
+    obj_000005: 5
+    obj_000006: 6
+    obj_000007: 7
+    obj_000008: 8
+    obj_000009: 9
+    obj_000010: 10
+    obj_000011: 11
+    obj_000012: 12
+    obj_000013: 13
+    obj_000014: 14
+    obj_000015: 15
+    obj_000016: 16
+    obj_000017: 17
+    obj_000018: 18
+    obj_000019: 19
+    obj_000020: 20
+    obj_000021: 21
+    obj_000022: 22
+    obj_000023: 23
+    obj_000024: 24
+    obj_000025: 25
+    obj_000026: 26
+    obj_000027: 27
+    obj_000028: 28
+    obj_000029: 29
+    obj_000030: 30
+
+multimodel:
+  load_pretrained_weights: True
+  # note: make sure you are loading the weights for the correct dataset
+  # also: make sure the model parameters are consistent with the ones used for training the weights
+  pretrained_weights_path: '{{ exp_root }}/exp_results/synth_supervised/tless/20221104_230139/_epoch_50_synth_supervised_kp_point_transformer.pth'
+
+maskrcnn:
+  # settings for maskrcnn
+  pretrained_weights_path: '{{ project_root }}/data/bop/experiments/detector-bop-tless-synt+real--452847/checkpoint.pth.tar'
+  freeze_weights: True
+  backbone_str: 'resnet50-fpn'
+  anchor_sizes: !!python/tuple
+    - !!python/tuple
+      - 32
+    - !!python/tuple
+      - 64
+    - !!python/tuple
+      - 128
+    - !!python/tuple
+      - 256
+    - !!python/tuple
+      - 512
+
+cosypose_coarse_refine:
+  n_rendering_workers: 1
+  coarse:
+    # path to the yaml config file; will be used to create the model
+    pretrained_model_config_path: '{{ project_root }}/data/bop/experiments/coarse-bop-tless-pbr--506801/config.yaml'
+    # root folder for cosypose model weights
+    pretrained_weights_path: '{{ project_root }}/data/bop/experiments/coarse-bop-tless-pbr--506801/checkpoint.pth.tar'
+    n_iterations: 1
+    init_method: 'z-up+auto-depth'
+  refiner:
+    pretrained_model_config_path: '{{ project_root }}/data/bop/experiments/refiner-bop-tless-pbr--233420/config.yaml'
+    pretrained_weights_path: '{{ project_root }}/data/bop/experiments/refiner-bop-tless-pbr--233420/checkpoint.pth.tar'
+    n_iterations: 4
+
+cosypose:
+  # root folder for cosypose model trained only on pbr images
+  pretrained_weights_path: '{{ project_root }}/data/bop/experiments/tless-coarse--10219/checkpoint.pth.tar'
+  backbone_str:  "efficientnet-b3"
+  n_pose_dims: 9
+  n_rendering_workers: 1
+  loss_disentangled: True
+  n_points_loss: 2600
+  #TCO_input_generator: "fixed"
+  n_iterations: 1
+  debug: True
+
+certifier:
+  theta: 25.0       # self-supervised loss function, pc_loss coefficient
+  # options to specify which certifier method to use for each model
+  cert_methods_c3po: ['point_clouds', 'keypoints']
+  cert_methods_cosypose: ['point_clouds', 'rendered_masks']
+  pc_epsilon_bound_method: "quantile"
+  pc_epsilon_quantile: 0.9
+  pc_clamp_method: "fixed"
+  epsilon_mask:
+    obj_000001: 0.90
+    obj_000002: 0.90
+    obj_000003: 0.90
+    obj_000004: 0.90
+    obj_000005: 0.90
+    obj_000006: 0.90
+    obj_000007: 0.90
+    obj_000008: 0.90
+    obj_000009: 0.90
+    obj_000010: 0.90
+    obj_000011: 0.90
+    obj_000012: 0.90
+    obj_000013: 0.90
+    obj_000014: 0.90
+    obj_000015: 0.90
+    obj_000016: 0.90
+    obj_000017: 0.90
+    obj_000018: 0.90
+    obj_000019: 0.90
+    obj_000020: 0.90
+    obj_000021: 0.90
+    obj_000022: 0.90
+    obj_000023: 0.90
+    obj_000024: 0.90
+    obj_000025: 0.90
+    obj_000026: 0.90
+    obj_000027: 0.90
+    obj_000028: 0.90
+    obj_000029: 0.90
+    obj_000030: 0.90
+  epsilon_pc:
+    obj_000001: 0.04
+    obj_000002: 0.04
+    obj_000003: 0.04
+    obj_000004: 0.04
+    obj_000005: 0.04
+    obj_000006: 0.04
+    obj_000007: 0.04
+    obj_000008: 0.04
+    obj_000009: 0.04
+    obj_000010: 0.04
+    obj_000011: 0.04
+    obj_000012: 0.04
+    obj_000013: 0.04
+    obj_000014: 0.04
+    obj_000015: 0.04
+    obj_000016: 0.04
+    obj_000017: 0.04
+    obj_000018: 0.04
+    obj_000019: 0.04
+    obj_000020: 0.04
+    obj_000021: 0.04
+    obj_000022: 0.04
+    obj_000023: 0.04
+    obj_000024: 0.04
+    obj_000025: 0.04
+    obj_000026: 0.04
+    obj_000027: 0.04
+    obj_000028: 0.04
+    obj_000029: 0.04
+    obj_000030: 0.04
+  epsilon_kp:
+    obj_000001: 0.04
+    obj_000002: 0.04
+    obj_000003: 0.04
+    obj_000004: 0.04
+    obj_000005: 0.04
+    obj_000006: 0.04
+    obj_000007: 0.04
+    obj_000008: 0.04
+    obj_000009: 0.04
+    obj_000010: 0.04
+    obj_000011: 0.04
+    obj_000012: 0.04
+    obj_000013: 0.04
+    obj_000014: 0.04
+    obj_000015: 0.04
+    obj_000016: 0.04
+    obj_000017: 0.04
+    obj_000018: 0.04
+    obj_000019: 0.04
+    obj_000020: 0.04
+    obj_000021: 0.04
+    obj_000022: 0.04
+    obj_000023: 0.04
+    obj_000024: 0.04
+    obj_000025: 0.04
+    obj_000026: 0.04
+    obj_000027: 0.04
+    obj_000028: 0.04
+    obj_000029: 0.04
+    obj_000030: 0.04
+  clamp_thres:
+    obj_000001: 0.1
+    obj_000002: 0.1
+    obj_000003: 0.1
+    obj_000004: 0.1
+    obj_000005: 0.1
+    obj_000006: 0.1
+    obj_000007: 0.1
+    obj_000008: 0.1
+    obj_000009: 0.1
+    obj_000010: 0.1
+    obj_000011: 0.1
+    obj_000012: 0.1
+    obj_000013: 0.1
+    obj_000014: 0.1
+    obj_000015: 0.1
+    obj_000016: 0.1
+    obj_000017: 0.1
+    obj_000018: 0.1
+    obj_000019: 0.1
+    obj_000020: 0.1
+    obj_000021: 0.1
+    obj_000022: 0.1
+    obj_000023: 0.1
+    obj_000024: 0.1
+    obj_000025: 0.1
+    obj_000026: 0.1
+    obj_000027: 0.1
+    obj_000028: 0.1
+    obj_000029: 0.1
+    obj_000030: 0.1
+
+
+c3po:
+  # root folder containing the pretrained weights
+  pretrained_weights_dir: '{{ exp_root }}/exp_results/supervised/'
+  detector_type: 'point_transformer'
+  use_corrector: True
+  corrector:
+    chamfer_loss_use_max: False
+    clamp_chamfer_loss: True
+    chamfer_loss_clamp_thres: 0.1
+    max_solve_iters: 100
+    solve_tol: 1.0e-4
+    solve_alg: 'torch-gd-accel'
+    gamma: 0.1
+
+  # parameters for diff ICP
+  use_diff_icp: False
+  diff_icp:
+    iters_max: 100
+    mse_threshold: 1.0e-5
+    corr_threshold: 10
+    corr_type: 'nn'
+    dist_type: 'point'
+    # whether to weight correspondences based on distances
+    weight_dist: False
+    # whether to weight correspondences based on normals
+    weight_normal: False
+    # threshold to reject corrs with high distance
+    # set to -1 to turn off rejection
+    rejection_dist: -1
+    # temperature parameter of correspondence finding
+    matching_temperature: 1.0e-3
+    # temperature parameter of correspondence rejection
+    rejection_temperature: 1.0e-5
+    # solver type
+    solver_type: 'svd'
+    verbose: True
+
+  point_transformer:
+    num_of_points_to_sample: 1000
+    self_supervised_train_dataset_len: 500
+    self_supervised_train_batch_size: 15 #25 #50
+    num_of_points_selfsupervised: 2048
+    # train_dataset_len: 50000
+    # train_batch_size: 100
+    # train_num_of_points: 1000
+
+    train_stop_cert_threshold: 0.99
+
+    val_dataset_len: 50
+    val_batch_size: 50
+    #val_dataset_len: 1000
+    #val_batch_size: 50
+    #val_num_of_points: 1000
+
+    num_epochs: 20
+
+    theta: 25.0       # self-supervised loss function, pc_loss coefficient
+    epsilon:
+      airplane: 0.999
+      bathtub: 0.998
+      bed: 0.998
+      bottle: 0.99
+      cap: 0.99
+      car: 0.999
+      chair: 0.999
+      guitar: 0.9995
+      helmet: 0.998
+      knife: 0.9995
+      laptop: 0.995
+      motorcycle: 0.999
+      mug: 0.995
+      skateboard: 0.999
+      table: 0.99
+      vessel: 0.999
+
+
+    eval_dataset_len: 50
+    eval_batch_size: 25 # 50
+
+    adds_threshold: 0.02  # 5% of the object diameter
+    adds_auc_threshold: 0.05  # 5% of the object diameter
+    adds_max: True      # unused
+
+  pointnet:
+    baseline_lr_sgd: 0.02
+    baseline_momentum_sgd: 0.9
+
+    self_supervised_train_dataset_len: 500
+    self_supervised_train_batch_size: 50
+    num_of_points_to_sample: 1000
+    num_of_points_selfsupervised: 2048
+    # train_dataset_len: 50000
+    # train_batch_size: 100
+    # train_num_of_points: 1000
+
+    train_stop_cert_threshold: 0.99
+
+    val_dataset_len: 50
+    val_batch_size: 50
+    #val_dataset_len: 1000
+    #val_batch_size: 50
+    #val_num_of_points: 1000
+
+    num_epochs: 20
+
+    theta: 25.0       # self-supervised loss function, pc_loss coefficient
+    epsilon:
+      airplane: 0.999
+      bathtub: 0.998
+      bed: 0.998
+      bottle: 0.99
+      cap: 0.99
+      car: 0.999
+      chair: 0.999
+      guitar: 0.9995
+      helmet: 0.998
+      knife: 0.9995
+      laptop: 0.995
+      motorcycle: 0.999
+      mug: 0.995
+      skateboard: 0.999
+      table: 0.99
+      vessel: 0.999
+
+
+    eval_dataset_len: 50
+    eval_batch_size: 50
+
+    adds_threshold: 0.02  # 2% of object diameter
+    adds_auc_threshold: 0.05
+    adds_max: True      # unused

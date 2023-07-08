@@ -1,0 +1,284 @@
+# jinja variables:
+# project_root
+# exp_root
+
+dataset: 'tless'
+# dataset for self-supervised training
+train_ds_name: 'tless.primesense.test'
+# dataset for validation
+val_ds_name: 'tless.primesense.test'
+urdf_ds_name: 'tless.cad'
+
+data_dir: '{{ project_root }}/data/'
+bop_data_dir: '{{ project_root }}/data/bop/'
+bop_ds_dir: '{{ project_root }}/data/bop/bop_datasets/'
+save_folder: '{{ exp_root }}/exp_results/eval/c3po_cosypose_2_refine/'
+
+train_mode: 'single_obj_eval'
+# models to use in parallel pipeline
+# available models: ['c3po_multi', 'c3po', 'cosypose', 'cosypose_coarse_refine']
+models_to_use: ['c3po', 'cosypose_coarse_refine']
+seg_type: 'gt'
+
+visualization:
+  # visualize segmentation
+  gt_rgb_segmentation: False
+  # visualize segmented point clouds
+  gt_pc_segmentation: False
+  # gt keypoints
+  gt_keypoints: False
+  # visualize detector results
+  detector_outputs: False
+  # visualize inputs to models
+  model_inputs: False
+  # visualize results of C3PO
+  c3po_outputs: False
+  # visualize results of cosypose model
+  cosypose_outputs: False
+  # control of certification visualization
+  certifier_pc:
+    c3po: False
+    cosypose: False
+  certifier_rendered_mask:
+    c3po: False
+    cosypose: False
+  certifier_loss_calc: False
+
+# training params
+optimizer:
+  lr_sgd: 0.02
+  momentum_sgd: 0.9
+  weight_decay_sgd: 0.00001
+
+step_lr_scheduler:
+  # for StepLR scheduler
+  lr_epoch_decay: 30
+  gamma: 0.1
+
+training:
+  batch_size: 20
+  epoch_size: -1
+  shuffle_train: True
+  n_epochs: 100
+
+  cert_batch_min_size: 20
+
+  # validation settings
+  # number of images used for validation as a fraction of the train set
+  val_ds_frac_size: 1.0
+  shuffle_val: True
+  # set to true to allow for overlap between val and train set (only for self-supervised training)
+  allow_val_train_overlap: True
+
+  # worker settings
+  n_dataloader_workers: 5
+  n_workers: 1
+
+  # data loader params
+  input_resize: [480, 640]
+  rgb_augmentation: False
+  background_augmentation: False
+  gray_augmentation: False
+  min_area: 50
+  train_stop_cert_threshold: 0.99
+
+  # loss & certification
+  # self_sup: self supervised loss
+  # pseudo_gt_sup: loss supervised by other methods' certified samples
+  # correction: loss on the corrector's correction
+  loss_weights:
+    c3po:
+      self_sup: 1.0
+      pseudo_gt_sup: 1.0
+      correction: 1.0
+    cosypose:
+      self_sup: 1.0
+      pseudo_gt_sup: 1.0
+      correction: 1.0
+
+  cert_epsilon: 0.999
+  kpt_distance_reg_eps_bound: 0.1
+  kpt_distance_reg_coef: 10
+  max_self_sup_loss: True
+
+  # type of the data loading regime to use
+  # single_obj: return specified batch of a single object
+  # frame_objs: return a frame containing all objects, using BOPDataset directly
+  # rand_objs: return random batched objects (potentially from different images)
+  dataloader_type: 'single_obj_pc_img'
+  # set to true to load the point-wise RGB values for each point cloud
+  load_rgb_for_points: True
+
+  # specify true to have the single object dataset precompute all point clouds
+  load_single_obj_data_from_cache: True
+  single_obj_data_cache_dir: null
+  # set to True to load all data to RAM
+  preload_to_ram: False
+
+  zero_center_pc: True
+  # turn on to use robust centroid (GNC) to mitigate outlier influence when centering
+  use_robust_centroid: True
+  # set to True to resample invalid points from valid points (to fill up number of sampled points instead of
+  # zero padding)
+  resample_invalid_pts: True
+
+  # set to true to have the data loader return point cloud normalized by object diameter
+  normalize_pc: True
+
+  # parameters for the robust centroid alg
+  robust_centroid:
+    algorithm: "gnc-tls"
+    abs_cost_termination_threshold: 1.0e-5
+    rel_cost_termination_threshold: 1.0e-5
+
+  # tensorboard log directory
+  tb_log_dir: '{{ exp_root }}/logs/self_supervised_single_obj'
+
+detector:
+  # type of detections (segmentation mask, bboxes) to use:
+  # gt, maskrcnn
+  det_type: 'gt'
+  # threshold for determining the masks
+  mask_th: 0.8
+
+maskrcnn:
+  # settings for maskrcnn
+  pretrained_weights_path: '{{ project_root }}/data/bop/experiments/detector-bop-ycbv-synt+real--292971/checkpoint.pth.tar'
+  freeze_weights: True
+  backbone_str: 'resnet50-fpn'
+  anchor_sizes: !!python/tuple
+    - !!python/tuple
+      - 32
+    - !!python/tuple
+      - 64
+    - !!python/tuple
+      - 128
+    - !!python/tuple
+      - 256
+    - !!python/tuple
+      - 512
+
+cosypose_coarse_refine:
+  n_rendering_workers: 1
+  use_corrector: True
+  coarse:
+    # path to the yaml config file; will be used to create the model
+    pretrained_model_config_path: '{{ project_root }}/data/bop/experiments/coarse-bop-tless-pbr--506801/config.yaml'
+    # root folder for cosypose model weights
+    pretrained_weights_path: '{{ project_root }}/data/bop/experiments/coarse-bop-tless-pbr--506801/checkpoint.pth.tar'
+    n_iterations: 1
+    init_method: 'z-up+auto-depth'
+  refiner:
+    pretrained_model_config_path: '{{ project_root }}/data/bop/experiments/refiner-bop-tless-pbr--233420/config.yaml'
+    pretrained_weights_path: '{{ project_root }}/data/bop/experiments/refiner-bop-tless-pbr--233420/checkpoint.pth.tar'
+    n_iterations: 2
+
+  corrector:
+    chamfer_loss_use_max: False
+    clamp_chamfer_loss: True
+    chamfer_loss_clamp_thres: 1.0
+    max_solve_iters: 100
+    solve_tol: 1.0e-4
+    solve_alg: 'torch-gd-accel'
+    gamma: 0.1
+
+  optimizer:
+    lr_sgd: 0.0003
+    momentum_sgd: 0.9
+    weight_decay_sgd: 0.00001
+
+  step_lr_scheduler:
+    # for StepLR scheduler
+    lr_epoch_decay: 30
+    gamma: 0.1
+
+cosypose:
+  # root folder for cosypose model trained only on pbr images
+  pretrained_weights_path: '{{ project_root }}/data/bop/experiments/ycbv-refiner-syntonly--596719/checkpoint.pth.tar'
+  backbone_str:  "efficientnet-b3"
+  n_pose_dims: 9
+  n_rendering_workers: 5
+  loss_disentangled: True
+  n_points_loss: 2600
+  #TCO_input_generator: "fixed"
+  n_iterations: 1
+  debug: False
+
+certifier:
+  theta: 25.0       # self-supervised loss function, pc_loss coefficient
+  # options to specify which certifier method to use for each model
+  cert_methods_c3po: ['point_clouds', 'keypoints']
+  cert_methods_cosypose: ['point_clouds', 'rendered_masks']
+  pc_epsilon_bound_method: "quantile"
+  pc_epsilon_quantile: 0.9
+  pc_clamp_method: "fixed"
+  objects_thresholds_path: '{{ exp_root }}/configs/objects_params/tless.yml'
+
+c3po:
+  # root folder containing the pretrained weights
+  load_pretrained_weights: True
+  pretrained_weights_path: '{{ exp_root }}/exp_results/synth_single_obj_70_best/tless/{{ object_id }}/_best_model_synth_supervised_single_obj_kp_point_transformer.pth.tar'
+  pretrained_weights_dir: '{{ exp_root }}/exp_results/supervised_topk/'
+  detector_type: 'point_transformer'
+  use_corrector: True
+
+  # NOTE: Use the one in the training section
+  # centering the inputs
+  zero_center_input: False
+  # turn on to use robust centroid (GNC) to mitigate outlier influence when centering
+  use_robust_centroid: False
+
+  optimizer:
+    lr_sgd: 0.02
+    momentum_sgd: 0.9
+    weight_decay_sgd: 0.00001
+
+  step_lr_scheduler:
+    # for StepLR scheduler
+    lr_epoch_decay: 30
+    gamma: 0.1
+
+  # parameters for the robust centroid alg
+  robust_centroid:
+    algorithm: "gnc-tls"
+    abs_cost_termination_threshold: 1.0e-5
+    rel_cost_termination_threshold: 1.0e-5
+
+  point_transformer:
+    num_of_points_to_sample: 1000
+    sampling_ratio: 0.7
+    sampling_type: "mlp_topk"
+    norm_type: "batch"
+    input_feature_dim: 3
+
+  corrector:
+    chamfer_loss_use_max: False
+    clamp_chamfer_loss: True
+    chamfer_loss_clamp_thres: 0.3
+    max_solve_iters: 100
+    solve_tol: 1.0e-4
+    solve_alg: 'torch-gd-accel'
+    gamma: 0.1
+
+  # parameters for diff ICP
+  use_diff_icp: False
+  diff_icp:
+    iters_max: 100
+    mse_threshold: 1.0e-5
+    corr_threshold: 10
+    corr_type: 'nn'
+    dist_type: 'point'
+    # whether to weight correspondences based on distances
+    weight_dist: False
+    # whether to weight correspondences based on normals
+    weight_normal: False
+    # threshold to reject corrs with high distance
+    # set to -1 to turn off rejection
+    rejection_dist: -1
+    # temperature parameter of correspondence finding
+    matching_temperature: 1.0e-3
+    # temperature parameter of correspondence rejection
+    rejection_temperature: 1.0e-5
+    # solver type
+    solver_type: 'svd'
+    verbose: True

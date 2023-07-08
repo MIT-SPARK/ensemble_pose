@@ -1,0 +1,76 @@
+# jinja variables:
+# project_root
+# exp_root
+
+dataset: 'ycbv'
+train_mode: 'supervised'
+bop_ds_dir: '{{ project_root }}/data/bop/bop_datasets/'
+save_folder: '{{ exp_root }}/exp_results/supervised_proposed'
+
+# training params
+optimizer:
+  lr_sgd: 0.02
+  momentum_sgd: 0.9
+  weight_decay_sgd: 0
+
+scheduler:
+  step_size: 100
+  gamma: 0.1
+
+training:
+  train_dataset_len: 50000
+  train_batch_size: 100
+  train_num_of_points: 1000
+
+  val_dataset_len: 1000
+  val_batch_size: 50
+  val_num_of_points: 1000
+
+  num_epochs: 20
+
+  adds_threshold: 0.02  # 5% of the object diameter
+  adds_auc_threshold: 0.05  # 5% of the object diameter
+  adds_max: True      # unused
+  kpt_distance_reg_coef: 1.0
+
+  # sampling algorithms for points on the cad model
+  cad_model_sampling_method: "uniform"
+  normalize_pc: True
+
+  # set to true to load the point-wise RGB values for each point cloud
+  load_rgb_for_points: False
+
+c3po:
+  detector_type: 'point_transformer'
+  use_corrector: False
+
+  # NOTE: Use the one in the training section
+  # centering the inputs
+  zero_center_input: True
+  # turn on to use robust centroid (GNC) to mitigate outlier influence when centering
+  use_robust_centroid: True
+
+  corrector:
+    chamfer_loss_use_max: False
+    clamp_chamfer_loss: True
+    chamfer_loss_clamp_thres: 0.1
+    max_solve_iters: 100
+    solve_tol: 1.0e-4
+    solve_alg: 'torch-gd-accel'
+    gamma: 0.1
+
+  # parameters for the robust centroid alg
+  robust_centroid:
+    algorithm: "gnc-tls"
+    abs_cost_termination_threshold: 1.0e-5
+    rel_cost_termination_threshold: 1.0e-5
+
+  point_transformer:
+    num_of_points_to_sample: 1000
+    sampling_ratio: 0.5
+    sampling_type: "mlp_topk"
+    norm_type: "batch"
+    input_feature_dim: 0
+
+  point_transformer_dense:
+    norm_type: "layer"

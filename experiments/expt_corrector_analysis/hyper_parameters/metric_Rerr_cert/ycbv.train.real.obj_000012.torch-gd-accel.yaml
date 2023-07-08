@@ -1,0 +1,6 @@
+Rerr_cert_opt: 0.07485383003950119
+algo: torch-gd-accel
+clamp_thres: 0.009999999776482582
+ds_name: ycbv.train.real
+epsilon: 0.004000000189989805
+object_label: obj_000012

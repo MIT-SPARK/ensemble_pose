@@ -1,0 +1,51 @@
+tuning:
+  True
+
+ds_names:
+#  - 'ycbv.train.real'
+  - 'tless.primesense.train'
+#  - 'tless.pbr'
+#  - 'ycbv.pbr'
+
+algo:
+#  'scipy-tr'
+#  'torch-gd'
+  'torch-gd-accel'
+#  'torch-multithres-gd-accel'
+#  'torch-gnc-gm'
+#  'torch-gnc-tls'
+
+kp_noise_fra:
+  0.8
+
+kp_noise_var_range:
+  - 0.5
+  - 0.51
+  - 1.0
+
+visible_fraction_ub:
+  1.0
+
+visible_fraction_lb:
+  0.9
+
+corrector_max_solve_iters:
+  100
+
+#epsilon:
+#  0.02
+#
+#clamp_thres:
+#  0.01
+#
+
+# # for: robust_kp_corrector (algo = 'torch-gnc-tls' or 'torch-gnc-gm')
+#gnc_max_solve_iters:
+#  10
+#
+# # for: multi_thres_kp_corrector (algo = 'torch-multithres-gd-accel')
+#clamp_thres_list:
+#  - 5
+#  - 2
+#  - 1
+
